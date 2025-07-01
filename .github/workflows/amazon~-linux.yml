@@ -1,0 +1,21 @@
+name: Amazon Linux CI
+
+on: [push]
+
+jobs:
+  amazonlinux-job:
+    runs-on: ubuntu-latest  # Host OS
+    container: amazonlinux:2  # 👈 Inside this Docker image
+
+    steps:
+      - name: Install git
+        run: yum install -y git
+
+      - name: Install bash
+        run: yum install -y bash
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run hello.sh
+        run: bash hello.sh
