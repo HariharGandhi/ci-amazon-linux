@@ -1,21 +1,27 @@
 name: Amazon Linux CI
 
-on: [push]
+on: [push]  # Trigger the workflow every time you push to the repo
 
 jobs:
   amazonlinux-job:
-    runs-on: ubuntu-latest  # Host OS
-    container: amazonlinux:2  # 👈 Inside this Docker image
+    runs-on: ubuntu-latest  # GitHub VM host
+    container: amazonlinux:2  # Your job runs inside Amazon Linux 2 container
 
     steps:
-      - name: Install git
-        run: yum install -y git
+      - name: Install Git and Bash
+        run: |
+          # Install tools that Amazon Linux base image does not have
+          yum install -y git bash
 
-      - name: Install bash
-        run: yum install -y bash
+          # Confirm they were installed
+          git --version
+          bash --version
 
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Manually Clone the Repo
+        run: |
+          # Use GitHub-provided environment variable to get the repo name
+          git clone https://github.com/${{ github.repository }} .
 
-      - name: Run hello.sh
-        run: bash hello.sh
+      - name: Run the hello.sh script
+        run: |
+          bash hello.sh
