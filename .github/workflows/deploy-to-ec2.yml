@@ -1,6 +1,9 @@
 name: Deploy to EC2
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   deploy:
@@ -10,9 +13,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install SSH Client
-        run: sudo apt-get update && sudo apt-get install -y openssh-client
-
       - name: Setup SSH key
         run: |
           mkdir -p ~/.ssh
@@ -20,15 +20,21 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy code to EC2
+      - name: Create app folder if missing
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "mkdir -p ~/app"
+
+      - name: Copy files to EC2
+        run: |
           scp -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
-      - name: Run shell script on EC2
-	run: |
-	  ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
-	    mkdir -p ~/app
-	    cd ~/app
-	    chmod +x run.sh
-	    ./run.sh
-	  EOF
+
+      - name: Run run.sh on EC2
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+            cd ~/app
+            echo "Files in app directory:"
+            ls -l
+            echo "Running run.sh..."
+            chmod +x run.sh
+            ./run.sh
+          EOF
