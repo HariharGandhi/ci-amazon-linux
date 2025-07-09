@@ -27,6 +27,7 @@ jobs:
       - name: Run shell script on EC2
 	run: |
 	  ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+	    mkdir ~/app
 	    cd ~/app
 	    chmod +x run.sh
 	    ./run.sh
