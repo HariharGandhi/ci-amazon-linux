@@ -1,0 +1,90 @@
+CI/CD Setup Guide: GitHub Actions to EC2 (Amazon Linux)
+
+-----------------------------------------
+🔐 Step 1: Create SSH Key Pair
+-----------------------------------------
+On your local machine:
+$ ssh-keygen -t rsa -b 2048 -f deploy-key
+
+- This creates two files:
+  - deploy-key (PRIVATE) – Add this as a GitHub secret
+  - deploy-key.pub (PUBLIC) – Add to EC2 authorized_keys
+
+-----------------------------------------
+☁️ Step 2: Add Public Key to EC2
+-----------------------------------------
+Use your existing EC2 `.pem` key to SSH in:
+$ ssh -i my-ec2-key.pem ec2-user@<EC2_PUBLIC_IP>
+
+On EC2:
+$ mkdir -p ~/.ssh
+$ nano ~/.ssh/authorized_keys
+
+Paste contents of `deploy-key.pub`
+Then:
+$ chmod 700 ~/.ssh
+$ chmod 600 ~/.ssh/authorized_keys
+
+-----------------------------------------
+🔑 Step 3: Add GitHub Secrets
+-----------------------------------------
+In GitHub → Repo → Settings → Secrets → Actions:
+
+1. EC2_SSH_KEY  = (contents of deploy-key)
+2. EC2_HOST     = Your EC2 public IP
+3. EC2_USER     = ec2-user
+
+-----------------------------------------
+📝 Step 4: Create GitHub Actions Workflow
+-----------------------------------------
+File: .github/workflows/deploy-to-ec2.yml
+
+name: Deploy to EC2
+
+on: [push]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install SSH Client
+        run: sudo apt-get update && sudo apt-get install -y openssh-client
+
+      - name: Setup SSH Key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          scp -r . ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/ec2-user/app
+
+-----------------------------------------
+🚀 Step 5: Trigger Deployment
+-----------------------------------------
+In your local project:
+
+$ git add .
+$ git commit -m "CI/CD to EC2 working"
+$ git push origin main
+
+GitHub Actions will now:
+✓ Run the pipeline
+✓ SSH into EC2
+✓ Deploy your code to /home/ec2-user/app
+
+-----------------------------------------
+✅ Step 6: Verify
+-----------------------------------------
+SSH into EC2:
+
+$ ssh -i my-ec2-key.pem ec2-user@<EC2_PUBLIC_IP>
+$ ls ~/app
+
+You should see all your deployed files.
