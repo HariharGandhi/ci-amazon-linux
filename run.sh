@@ -1,9 +1,13 @@
 #!/bin/bash
 
-LOGFILE="/home/ec2-user/app/deploy-log.txt"
+echo " run.sh started executing."
 
-# Append a timestamped message
-echo "🚀 Deployment successful on $(date)" >> "$LOGFILE"
+# Create a log file with a timestamp
+timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+echo "run.sh executed on $timestamp" > ~/app/deploy-log.txt
 
-# Print confirmation (visible in GitHub Actions log)
-echo "Log written to $LOGFILE"
+# Add extra line to verify logs
+echo "Hello from run.sh at $timestamp" >> ~/app/deploy-log.txt
+
+echo " run.sh finished."
+
