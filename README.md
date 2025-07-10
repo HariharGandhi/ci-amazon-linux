@@ -3,7 +3,7 @@
 This project demonstrates a complete CI/CD pipeline using GitHub Actions to deploy code directly to an AWS EC2 instance.
 
 ## 🔧 Tech Stack
-- Git & GitHub
+- Git & GitHub Workflow
 - GitHub Actions (CI/CD)
 - Amazon EC2 (Amazon Linux)
 - SSH-based secure deployment
